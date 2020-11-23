@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Xml.Linq;
 using Goodreads.Extensions;
+using Newtonsoft.Json;
 
 namespace Goodreads.Models.Response
 {
@@ -12,41 +13,49 @@ namespace Goodreads.Models.Response
     /// This class models a single book as defined by the Goodreads API.
     /// </summary>
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [JsonObject(MemberSerialization.OptIn)]
     public sealed class Book : ApiResponse
     {
         /// <summary>
         /// The Goodreads Id for this book.
         /// </summary>
+        [JsonProperty]
         public long Id { get; private set; }
 
         /// <summary>
         /// The title of this book.
         /// </summary>
+        [JsonProperty]
         public string Title { get; private set; }
 
         /// <summary>
         /// The description of this book.
         /// </summary>
+        [JsonProperty]
         public string Description { get; private set; }
 
         /// <summary>
         /// The ISBN of this book.
         /// </summary>
+        [JsonProperty]
         public string Isbn { get; private set; }
 
         /// <summary>
         /// The ISBN13 of this book.
         /// </summary>
+        [JsonProperty]
         public string Isbn13 { get; private set; }
 
         /// <summary>
         /// The ASIN of this book.
         /// </summary>
+        [JsonProperty]
         public string Asin { get; private set; }
 
         /// <summary>
         /// The Kindle ASIN of this book.
         /// </summary>
+        [JsonProperty]
         public string KindleAsin { get; private set; }
 
         /// <summary>
@@ -62,16 +71,19 @@ namespace Goodreads.Models.Response
         /// <summary>
         /// The cover image for this book.
         /// </summary>
+        [JsonProperty]
         public string ImageUrl { get; private set; }
 
         /// <summary>
         /// The small cover image for this book.
         /// </summary>
+        [JsonProperty]
         public string SmallImageUrl { get; private set; }
 
         /// <summary>
         /// The date this book was published.
         /// </summary>
+        [JsonProperty]
         public DateTime? PublicationDate { get; private set; }
 
         /// <summary>
@@ -122,6 +134,7 @@ namespace Goodreads.Models.Response
         /// <summary>
         /// The Goodreads Url for this book.
         /// </summary>
+        [JsonProperty]
         public string Url { get; private set; }
 
         /// <summary>
@@ -132,6 +145,7 @@ namespace Goodreads.Models.Response
         /// <summary>
         /// The list of authors that worked on this book.
         /// </summary>
+        [JsonProperty]
         public IReadOnlyList<AuthorSummary> Authors { get; private set; }
 
         /// <summary>
@@ -162,6 +176,15 @@ namespace Goodreads.Models.Response
         /// Summary information about similar books to this one.
         /// </summary>
         public IReadOnlyList<BookSummary> SimilarBooks { get; private set; }
+
+        /// <summary>
+        /// Summary information about similar books to this one.
+        /// </summary>
+        //[JsonProperty]
+        public IReadOnlyList<SeriesWork> Series { get; private set; }
+
+        [JsonProperty]
+        public IReadOnlyList<long> SeriesIds { get; private set; }
 
         // TODO: parse series information once I get a better sense
         // of what series are from the other API calls.
@@ -214,7 +237,7 @@ namespace Goodreads.Models.Response
 
             Authors = element.ParseChildren<AuthorSummary>("authors", "author");
             SimilarBooks = element.ParseChildren<BookSummary>("similar_books", "book");
-
+            Series = element.ParseChildren<SeriesWork>("series_works", "series_work");
             var bookLinks = element.ParseChildren<BookLink>("book_links", "book_link");
             if (bookLinks != null)
             {
@@ -245,6 +268,15 @@ namespace Goodreads.Models.Response
             if (shelves != null)
             {
                 PopularShelves = shelves.GroupBy(obj => obj.Key).ToDictionary(shelf => shelf.Key, shelf => shelf.Sum(x => x.Value));
+            }
+
+            if (Series != null && Series.Any())
+            {
+                SeriesIds = Series.Select(i => i.Series.Id).ToList();
+            }
+            else
+            {
+                SeriesIds = new List<long>();
             }
         }
     }

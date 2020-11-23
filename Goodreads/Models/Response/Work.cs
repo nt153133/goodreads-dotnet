@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Xml.Linq;
 using Goodreads.Extensions;
+using Newtonsoft.Json;
 
 namespace Goodreads.Models.Response
 {
@@ -15,33 +16,39 @@ namespace Goodreads.Models.Response
     /// are aggregate information over all the editions of a work.
     /// </summary>
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [JsonObject(MemberSerialization.OptIn)]
     public sealed class Work : ApiResponse
     {
         /// <summary>
         /// The Goodreads Id for this work.
         /// </summary>
+        [JsonProperty]
         public long Id { get; private set; }
 
         /// <summary>
         /// The number of books for this work.
         /// </summary>
+        [JsonProperty]
         public int BooksCount { get; private set; }
 
         /// <summary>
         /// The Goodreads Book Id that is considered the best version of this work.
         /// Might not be populated. See the <see cref="BestBook"/> property for details, if provided.
         /// </summary>
+        [JsonProperty]
         public long? BestBookId { get; private set; }
 
         /// <summary>
         /// The details for the best book of this work. Only populated
         /// if Goodreads provides it as part of the response.
         /// </summary>
+        [JsonProperty]
         public BestBook BestBook { get; private set; }
 
         /// <summary>
         /// If included in a list, this defines this work's position.
         /// </summary>
+        [JsonProperty]
         public string UserPosition { get; private set; }
 
         /// <summary>
@@ -169,6 +176,21 @@ namespace Goodreads.Models.Response
         internal void SetUserPosition(string userPosition)
         {
             UserPosition = userPosition;
+        }
+
+        private bool Equals(Work other)
+        {
+            return BestBookId == other.BestBookId;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return ReferenceEquals(this, obj) || obj is Work other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return BestBookId.GetHashCode();
         }
     }
 }
